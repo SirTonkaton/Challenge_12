@@ -1,3 +1,39 @@
+function init(){
+    //Grab a reference to the dropdown select element
+    var selector = d3.select("#selDataset");
+    console.log(selector);
+
+    //Use the lsit of sample names to populate the select options
+    d3.json("samples.json").then(function(data) {
+        console.log(data);
+        var sampleNames = data.names;
+
+        sampleNames.forEach(function(name){
+            selector
+            .append("option")
+            .text(name)
+            .property("value", name)
+        });
+        
+        var firstSample = sampleNames[0];
+      
+        buildMetadata(firstSample);
+        buildCharts(firstSample);
+    });
+}
+
+
+//Inititalized the dashboard
+init();
+
+function optionChanged(newSample){
+    buildMetadata(newSample);
+    buildCharts(newSample);
+
+}
+
+
+
 
 function buildMetadata(sample){
     d3.json("samples.json").then(function(data){
@@ -87,41 +123,40 @@ function buildCharts(sample){
 
         Plotly.newPlot("bar", barData, barLayout);
 
-    }) 
+
+        var metadata = data.metadata;
+        var gaugeArray = metadata.filter(data => data.id == sample);
+
+            var gaugeResult = gaugeArray[0];
+
+        var wfreqs = gaugeResult.wfreq;
+        console.log(wfreqs)
+
+        var gaugeData = [{
+            value: wfreqs,
+            type: "indicator",
+            mode: "gauge+number",
+            title: {text: "<b> Belly Button Washing Frequency </b> <br></br> Scrubs Per Week"},
+            gauge: {
+                axis: {range: [null,10], dtick: "2"},
+
+                bar: {color: "black"},
+                steps: [
+                    {range: [0, 2], color: "red"},
+                    {range: [2, 4], color: "orange"},
+                    {range: [4, 6], color: "yellow"},
+                    {range: [6, 8], color: "lightgreen"},
+                    {range: [8, 10], color: "green"}
+                ],
+                dtick: 2
+            }
+        }];
+
+        var gaugeLayout = {
+        automargin: true 
+        };
+
+        Plotly.newPlot("gauge", gaugeData, gaugeLayout)
+
+    }); 
 }
-
-
-
-
-function init(){
-    console.log("Hello World");
-    //Grab a reference to the dropdown select element
-    var selector = d3.select("#selDataset");
-    console.log(selector);
-
-    //Use the lsit of sample names to populate the select options
-    d3.json("samples.json").then(function(data) {
-        console.log(data);
-        var sampleNames = data.names;
-
-        sampleNames.forEach(function(name){
-            selector
-            .append("option")
-            .text(name)
-            .property("value", name)
-        })
-        
-        var firstSample = sampleNames[0];
-      
-        buildCharts(firstSample);
-        buildMetadata(firstSample);
-    })
-}
-
-function optionChanged(newSample){
-    buildCharts(newSample);
-    buildMetadata(newSample);
-}
-
-//Inititalized the dashboard
-init()
